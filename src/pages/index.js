@@ -19,7 +19,6 @@ export default function Home() {
 
   // Function to handle the execution of commands
   const executeCommand = async (command) => {
-    // If the command is 'showimage', handle it client-side
     if (command.startsWith('showimage')) {
       const args = command.split(' '); // Split the command into args
       const imageUrl = args[1]; // Image URL should be the second argument
@@ -46,7 +45,6 @@ export default function Home() {
       setOutput((prevOutput) => [...prevOutput, <div key={data.error}>Error: {data.error}</div>]);
     }
 
-    // Clear input after execution
     setInput('');
     scrollToBottom();
   };
@@ -54,16 +52,15 @@ export default function Home() {
   // Handle the showimage command by rendering the image with optional CSS
   const handleShowImageCommand = (url, cssStyles) => {
     if (url) {
-      // Set the image with the passed URL and CSS
       setOutput((prevOutput) => [
         ...prevOutput,
         <div style={{ textAlign: 'center', marginTop: '20px' }} key={url}>
           <Image
             src={url}
             alt="Terminal Image"
-            width={500} // Specify a width for Next.js Image component
-            height={300} // Specify a height
-            loader={customImageLoader} // Use the custom loader
+            width={500}
+            height={300}
+            loader={customImageLoader}
             style={{ maxWidth: '100%', height: 'auto', ...parseCssStyles(cssStyles) }}
           />
         </div>,
@@ -73,12 +70,10 @@ export default function Home() {
     }
   };
 
-  // Custom image loader function to bypass Next.js's built-in image optimization
   const customImageLoader = ({ src }) => {
-    return src; // Simply return the image source URL
+    return src;
   };
 
-  // Function to parse CSS styles from string to an object
   const parseCssStyles = (styles) => {
     const styleObj = {};
     styles.split(';').forEach((style) => {
@@ -90,7 +85,6 @@ export default function Home() {
     return styleObj;
   };
 
-  // Simulate rough scrolling effect in terminal
   const scrollToBottom = () => {
     if (terminalRef.current) {
       terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
@@ -107,34 +101,64 @@ export default function Home() {
     setInput(e.target.value);
   };
 
-  // When terminal loads, show ASCII Art and update the page title
+  // Rough scrolling effect for general mouse wheel scrolling
+  useEffect(() => {
+    const terminal = terminalRef.current;
+
+    const handleWheel = (event) => {
+      event.preventDefault();
+      const delta = event.deltaY;
+      const step = 20; // Adjust for roughness
+      const interval = 20; // Milliseconds per step
+
+      let remainingScroll = delta;
+
+      const scrollInterval = setInterval(() => {
+        if (Math.abs(remainingScroll) <= step) {
+          terminal.scrollTop += remainingScroll;
+          clearInterval(scrollInterval);
+        } else {
+          terminal.scrollTop += step * Math.sign(delta);
+          remainingScroll -= step * Math.sign(delta);
+        }
+      }, interval);
+    };
+
+    if (terminal) {
+      terminal.addEventListener('wheel', handleWheel, { passive: false });
+    }
+
+    return () => {
+      if (terminal) {
+        terminal.removeEventListener('wheel', handleWheel);
+      }
+    };
+  }, []);
+
   useEffect(() => {
     setOutput([asciiArt]);
-    scrollToBottom();
     document.title = 'NextVM'; // Update the title of the page
   }, []);
 
   return (
     <div
       className="min-h-screen bg-gray-900 text-white flex flex-col"
-      style={{ margin: 0, padding: 0, height: '100vh', width: '100vw' }} // Make the terminal take up the entire screen
+      style={{ margin: 0, padding: 0, height: '100vh', width: '100vw' }}
     >
-      {/* Terminal Output */}
       <div
         ref={terminalRef}
         className="bg-gray-800 flex-grow p-6 text-white overflow-auto font-mono"
         style={{
-          whiteSpace: 'pre', // Ensure whitespace is preserved for ASCII art
+          whiteSpace: 'pre',
           wordWrap: 'normal',
           lineHeight: '1.4',
         }}
       >
         {output.map((item, index) => (
-          <div key={index}>{item}</div> // Dynamically render React elements like Image or text
+          <div key={index}>{item}</div>
         ))}
       </div>
 
-      {/* Terminal Input */}
       <div className="bg-gray-800 p-4 flex items-center">
         <span className="text-green-500">$</span>
         <input
@@ -148,8 +172,8 @@ export default function Home() {
           placeholder="Enter a command"
           style={{
             border: 'none',
-            backgroundColor: 'transparent', // Make the input blend with terminal background
-            fontFamily: 'monospace', // Ensure the input uses a monospace font
+            backgroundColor: 'transparent',
+            fontFamily: 'monospace',
           }}
         />
       </div>
