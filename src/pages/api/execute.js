@@ -10,7 +10,7 @@ export default function handler(req, res) {
     processes.forEach(proc => proc.kill());
     processes.length = 0;
 
-    const process = exec(`bash -c "${command}"`, (error, stdout, stderr) => {
+    const process = exec(`zsh -c "${command}"`, (error, stdout, stderr) => { // Changed bash to zsh
       if (error) {
         return res.status(500).json({ error: `Execution failed: ${error.message}` });
       }
