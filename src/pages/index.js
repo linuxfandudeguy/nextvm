@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import Image from 'next/image'; // Import Next.js Image component
 
 export default function Home() {
   const [output, setOutput] = useState('');
@@ -20,14 +21,17 @@ export default function Home() {
 
   // Function to handle the execution of commands
   const executeCommand = async (command) => {
-    // If the command is 'nextvm', handle it client-side
-    if (command.startsWith('nextvm')) {
-      const url = command.split(' ')[1]; // Get the URL from the command
-      handleNextVMCommand(url); // Call the client-side logic
+    // If the command is 'showimage', handle it client-side
+    if (command.startsWith('showimage')) {
+      const args = command.split(' '); // Split the command into args
+      const imageUrl = args[1]; // Image URL should be the second argument
+      const cssStyles = args.slice(2).join(' '); // Collect all CSS arguments after the URL
+
+      handleShowImageCommand(imageUrl, cssStyles);
       return; // Prevent further execution through the API
     }
 
-    // If it's not 'nextvm', send the command to the API
+    // If it's not 'showimage', send the command to the API
     const response = await fetch('/api/execute', {
       method: 'POST',
       headers: {
@@ -49,39 +53,37 @@ export default function Home() {
     scrollToBottom();
   };
 
-  // Handle the nextvm command by changing the terminal theme
-  const handleNextVMCommand = (url) => {
+  // Handle the showimage command by rendering the image with optional CSS
+  const handleShowImageCommand = (url, cssStyles) => {
     if (url) {
-      setTheme(url); // Update theme based on the URL provided in the command
+      // Set the image with the passed URL and CSS
+      setOutput((prevOutput) => prevOutput + `\n[Displaying image from: ${url}]`);
 
-      // Dynamically create and append the link element to the document head
-      const linkElement = document.createElement('link');
-      linkElement.rel = 'stylesheet';
-      linkElement.href = url;
-      linkElement.id = 'nextvm-theme'; // Add an ID to easily remove it later
+      // Split the CSS into a style object (simple example, can be extended)
+      const styleObj = cssToObject(cssStyles);
 
-      // Add event listeners for load and error to check if the CSS is loading correctly
-      linkElement.onload = () => {
-        setOutput((prevOutput) => prevOutput + `\n[Terminal theme successfully changed to: ${url}]`);
-      };
-
-      linkElement.onerror = () => {
-        setOutput((prevOutput) => prevOutput + `\nError: Failed to load the theme from: ${url}`);
-      };
-
-      // If a previous theme is already set, remove the old theme link
-      if (themeLinkRef.current) {
-        document.head.removeChild(themeLinkRef.current);
-      }
-
-      // Append the new theme stylesheet to the head
-      document.head.appendChild(linkElement);
-      themeLinkRef.current = linkElement; // Store the link element for later reference
-
-      setOutput((prevOutput) => prevOutput + `\n[Terminal theme changed to: ${url}]`);
+      // Display the image with the dynamic styles
+      setOutput((prevOutput) => prevOutput + `
+      <div style="${cssStyles}">
+        <img src="${url}" alt="Terminal Image" style="max-width: 100%; ${cssStyles}" />
+      </div>
+      `);
     } else {
-      setOutput((prevOutput) => prevOutput + '\nError: Invalid theme URL.');
+      setOutput((prevOutput) => prevOutput + '\nError: Invalid image URL.');
     }
+  };
+
+  // Function to convert a CSS string to an object (simple version)
+  const cssToObject = (cssStr) => {
+    const cssArray = cssStr.split(';');
+    let styleObj = {};
+    cssArray.forEach((css) => {
+      const [key, value] = css.split(':');
+      if (key && value) {
+        styleObj[key.trim()] = value.trim();
+      }
+    });
+    return styleObj;
   };
 
   // Simulate rough scrolling effect in terminal
