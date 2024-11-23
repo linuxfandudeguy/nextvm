@@ -1,13 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
-import Image from 'next/image'; // Import Next.js Image component
+import Image from 'next/image';
 
 export default function Home() {
-  const [output, setOutput] = useState([]); // Array of React elements for output
+  const [output, setOutput] = useState([]);
   const [input, setInput] = useState('');
   const terminalRef = useRef(null);
   const inputRef = useRef(null);
 
-  // ASCII Art to be displayed when terminal loads
   const asciiArt = `
 ███╗   ██╗███████╗██╗  ██╗████████╗██╗   ██╗███╗   ███╗
 ████╗  ██║██╔════╝╚██╗██╔╝╚══██╔══╝██║   ██║████╗ ████║
@@ -17,39 +16,39 @@ export default function Home() {
 ╚═╝  ╚═══╝╚══════╝╚═╝  ╚═╝   ╚═╝     ╚═══╝  ╚═╝     ╚═╝  
 `;
 
-  // Function to handle the execution of commands
   const executeCommand = async (command) => {
     if (command.startsWith('showimage')) {
-      const args = command.split(' '); // Split the command into args
-      const imageUrl = args[1]; // Image URL should be the second argument
-      const cssStyles = args.slice(2).join(' '); // Collect all CSS arguments after the URL
+      const args = command.split(' ');
+      const imageUrl = args[1];
+      const cssStyles = args.slice(2).join(' ');
 
       handleShowImageCommand(imageUrl, cssStyles);
-      return; // Prevent further execution through the API
+      return;
     }
 
-    // If it's not 'showimage', send the command to the API
     const response = await fetch('/api/execute', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ command }),
     });
 
     const data = await response.json();
-
     if (response.ok) {
-      setOutput((prevOutput) => [...prevOutput, <div key={data.result} className="line">{data.result}</div>]); // Just display raw text in a line div
+      setOutput((prevOutput) => [
+        ...prevOutput,
+        <div key={data.result} className="line">{data.result}</div>
+      ]);
     } else {
-      setOutput((prevOutput) => [...prevOutput, <div key={data.error} className="line">Error: {data.error}</div>]);
+      setOutput((prevOutput) => [
+        ...prevOutput,
+        <div key={data.error} className="line">Error: {data.error}</div>
+      ]);
     }
 
     setInput('');
     scrollToBottom();
   };
 
-  // Handle the showimage command by rendering the image with optional CSS
   const handleShowImageCommand = (url, cssStyles) => {
     if (url) {
       setOutput((prevOutput) => [
@@ -63,7 +62,7 @@ export default function Home() {
             loader={customImageLoader}
             style={{ maxWidth: '100%', height: 'auto', ...parseCssStyles(cssStyles) }}
           />
-        </div>,
+        </div>
       ]);
     } else {
       setOutput((prevOutput) => [...prevOutput, <div key="invalid-url">Error: Invalid image URL.</div>]);
@@ -101,27 +100,26 @@ export default function Home() {
     setInput(e.target.value);
   };
 
-  // Rough scrolling effect for general mouse wheel scrolling
+  // Refined rough scrolling logic
   useEffect(() => {
     const terminal = terminalRef.current;
 
     const handleWheel = (event) => {
       event.preventDefault(); // Prevent smooth scrolling
 
-      // Adjust the scroll delta and apply the rough scroll step
       const delta = event.deltaY;
-      const step = 30; // Rough scroll step (higher values = rougher)
-      const interval = 30; // Milliseconds between steps
+      const step = 10; // Smaller step for slower scroll
+      const interval = 40; // Adjust this for a smoother rough scroll
 
-      // This will only adjust scrollTop with rough steps, allowing normal scrolling behavior otherwise
       const currentScroll = terminal.scrollTop;
+      const terminalHeight = terminal.scrollHeight - terminal.clientHeight;
 
       let remainingScroll = delta;
       const direction = Math.sign(delta);
 
-      // This checks if scrolling is within valid bounds before applying rough scrolling
+      // Only apply rough scroll when it's within valid scrollable bounds
       if (
-        (direction > 0 && currentScroll + remainingScroll < terminal.scrollHeight - terminal.clientHeight) ||
+        (direction > 0 && currentScroll + remainingScroll < terminalHeight) ||
         (direction < 0 && currentScroll + remainingScroll > 0)
       ) {
         let remainingSteps = Math.abs(remainingScroll / step);
@@ -133,6 +131,9 @@ export default function Home() {
             remainingSteps--;
           }
         }, interval);
+      } else {
+        // Let the natural scroll behavior kick in if at the top/bottom
+        terminal.scrollTop += remainingScroll;
       }
     };
 
@@ -149,14 +150,11 @@ export default function Home() {
 
   useEffect(() => {
     setOutput([asciiArt]);
-    document.title = 'NextVM'; // Update the title of the page
+    document.title = 'NextVM';
   }, []);
 
   return (
-    <div
-      className="min-h-screen bg-gray-900 text-white flex flex-col"
-      style={{ margin: 0, padding: 0, height: '100vh', width: '100vw' }}
-    >
+    <div className="min-h-screen bg-gray-900 text-white flex flex-col" style={{ margin: 0, padding: 0, height: '100vh', width: '100vw' }}>
       <div
         ref={terminalRef}
         className="bg-gray-800 flex-grow p-6 text-white overflow-auto font-mono"
@@ -164,7 +162,7 @@ export default function Home() {
           whiteSpace: 'pre',
           wordWrap: 'normal',
           lineHeight: '1.4',
-          scrollSnapType: 'y mandatory', // Enable scroll snap
+          scrollSnapType: 'y mandatory',
         }}
       >
         {output.map((item, index) => (
