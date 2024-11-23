@@ -108,22 +108,32 @@ export default function Home() {
     const handleWheel = (event) => {
       event.preventDefault(); // Prevent smooth scrolling
 
-      // Get the scroll direction and adjust the scroll step
+      // Adjust the scroll delta and apply the rough scroll step
       const delta = event.deltaY;
       const step = 30; // Rough scroll step (higher values = rougher)
       const interval = 30; // Milliseconds between steps
 
-      let remainingScroll = delta;
+      // This will only adjust scrollTop with rough steps, allowing normal scrolling behavior otherwise
+      const currentScroll = terminal.scrollTop;
 
-      const scrollInterval = setInterval(() => {
-        if (Math.abs(remainingScroll) <= step) {
-          terminal.scrollTop += remainingScroll;
-          clearInterval(scrollInterval);
-        } else {
-          terminal.scrollTop += step * Math.sign(delta);
-          remainingScroll -= step * Math.sign(delta);
-        }
-      }, interval);
+      let remainingScroll = delta;
+      const direction = Math.sign(delta);
+
+      // This checks if scrolling is within valid bounds before applying rough scrolling
+      if (
+        (direction > 0 && currentScroll + remainingScroll < terminal.scrollHeight - terminal.clientHeight) ||
+        (direction < 0 && currentScroll + remainingScroll > 0)
+      ) {
+        let remainingSteps = Math.abs(remainingScroll / step);
+        let intervalId = setInterval(() => {
+          if (remainingSteps <= 0) {
+            clearInterval(intervalId);
+          } else {
+            terminal.scrollTop += direction * step;
+            remainingSteps--;
+          }
+        }, interval);
+      }
     };
 
     if (terminal) {
