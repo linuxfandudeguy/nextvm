@@ -90,13 +90,16 @@ export default function Home() {
     return styleObj;
   };
 
-  // Simulate rough scrolling effect in terminal
+  // Function to scroll to the bottom only if the user is at the bottom
   const scrollToBottom = () => {
     if (terminalRef.current) {
-      // Add a small delay for rough scrolling effect
-      setTimeout(() => {
+      const isAtBottom =
+        terminalRef.current.scrollHeight - terminalRef.current.scrollTop === terminalRef.current.clientHeight;
+
+      // Only scroll to the bottom if we're already at the bottom
+      if (isAtBottom) {
         terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
-      }, 100); // Adjust delay if necessary
+      }
     }
   };
 
@@ -117,6 +120,22 @@ export default function Home() {
     document.title = 'NextVM'; // Update the title of the page
   }, []);
 
+  // Function to detect if user has manually scrolled up
+  const handleScroll = () => {
+    const terminal = terminalRef.current;
+    if (terminal) {
+      const isAtBottom =
+        terminal.scrollHeight - terminal.scrollTop === terminal.clientHeight;
+
+      // If user scrolls up, don't auto-scroll down
+      if (!isAtBottom) {
+        terminal.setAttribute('data-scrolling', 'true'); // Mark as manually scrolled up
+      } else {
+        terminal.setAttribute('data-scrolling', 'false'); // Mark as at the bottom
+      }
+    }
+  };
+
   return (
     <div
       className="min-h-screen bg-gray-900 text-white flex flex-col"
@@ -131,6 +150,7 @@ export default function Home() {
           wordWrap: 'normal',
           lineHeight: '1.4',
         }}
+        onScroll={handleScroll} // Detect scrolling
       >
         {output.map((item, index) => (
           <div key={index}>{item}</div> // Dynamically render React elements like Image or text
