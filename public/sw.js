@@ -1,10 +1,17 @@
-const CACHE_NAME = 'nextvm-cache-v1'; // You can update the version as needed
-const URLs_TO_CACHE = [
+// sw.js
+
+// Define the cache name
+const CACHE_NAME = 'my-cache-v1';
+
+// List of essential files to cache during the install event
+const CACHE_FILES = [
   '/',
-  '/404',
-  '/500',
+  '/index.html',
   '/favicon.ico',
   '/manifest.json',
+  '/_next/static/**/*', // Cache all static files in _next
+  '/404',  // Example for a custom 404 page (adjust accordingly)
+  '/500',  // Example for a custom 500 page (adjust accordingly)
   '/file.svg',
   '/globe.svg',
   '/next.svg',
@@ -12,64 +19,92 @@ const URLs_TO_CACHE = [
   '/window.svg',
 ];
 
-// Install event to cache important assets
+// Install event to cache essential resources
 self.addEventListener('install', (event) => {
+  console.log('Service Worker: Installing...');
+  
+  // Perform caching during installation
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('Opened cache and caching essential files');
-      return cache.addAll(URLs_TO_CACHE); // Cache the static URLs
-    }).catch((error) => {
-      console.error('Failed to install service worker and cache resources:', error);
-    })
-  );
-});
-
-// Fetch event to handle the caching and fetching logic
-self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      // If the request is already cached, return it
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-
-      // Otherwise, fetch the resource and cache it if successful
-      return fetch(event.request).then((response) => {
-        // Only cache valid responses (200 OK and 'basic' type)
-        if (!response || response.status !== 200 || response.type !== 'basic') {
-          return response; // Don't cache non-200 responses
-        }
-
-        // Clone the response so we can cache it and return it
-        const responseToCache = response.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseToCache);
-        });
-
-        return response; // Return the network response
+      console.log('Service Worker: Caching essential files...');
+      return cache.addAll(CACHE_FILES).then(() => {
+        console.log('Service Worker: Cached all essential files');
       }).catch((error) => {
-        console.error('Fetch failed; serving fallback:', error);
-        // Serve fallback content if the fetch fails (e.g., offline mode)
-        return caches.match('index.html');
+        console.error('Service Worker: Failed to cache files', error);
       });
     })
   );
 });
 
-// Activate event to clean up old caches
+// Activate event to remove old caches (if any)
 self.addEventListener('activate', (event) => {
-  const cacheWhitelist = [CACHE_NAME]; // Only keep the current cache version
+  console.log('Service Worker: Activating...');
 
+  // Delete old caches if needed
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
-          if (!cacheWhitelist.includes(cacheName)) {
-            // Delete outdated caches
+          if (cacheName !== CACHE_NAME) {
+            console.log('Service Worker: Removing old cache', cacheName);
             return caches.delete(cacheName);
           }
         })
       );
     })
   );
+});
+
+// Fetch event to serve cached files or fallback to network
+self.addEventListener('fetch', (event) => {
+  // Log each fetch request
+  console.log('Service Worker: Fetching', event.request.url);
+
+  event.respondWith(
+    // Try to serve from cache
+    caches.match(event.request).then((cachedResponse) => {
+      if (cachedResponse) {
+        console.log('Service Worker: Serving from cache', event.request.url);
+        return cachedResponse; // Return cached response if found
+      }
+
+      // If not in cache, fetch from network and cache the response if successful
+      return fetch(event.request).then((networkResponse) => {
+        // Only cache successful network responses
+        if (networkResponse && networkResponse.ok) {
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, networkResponse.clone());
+            console.log('Service Worker: Cached network response for', event.request.url);
+          });
+        }
+        return networkResponse; // Return the network response
+      }).catch((error) => {
+        console.error('Service Worker: Fetch failed', error);
+        throw error;  // Let the error propagate
+      });
+    })
+  );
+});
+
+// Optional: Push notification handler (if you plan to use push notifications in the future)
+self.addEventListener('push', (event) => {
+  console.log('Service Worker: Push event received', event);
+
+  const options = {
+    body: event.data.text(),
+    icon: '/favicon.ico',
+    badge: '/badge.ico',
+  };
+
+  event.waitUntil(
+    self.registration.showNotification('New Push Notification', options)
+  );
+});
+
+// Optional: Background sync (if you're planning to sync data in the background)
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'sync-data') {
+    console.log('Service Worker: Syncing data in the background...');
+    // Perform background sync logic here (e.g., send data to server)
+  }
 });
