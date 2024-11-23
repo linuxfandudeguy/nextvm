@@ -1,78 +1,84 @@
 import { useState, useRef, useEffect } from 'react';
-import Image from 'next/image';
+import Image from 'next/image'; // Import Next.js Image component
 
 export default function Home() {
-  const [output, setOutput] = useState([]);
+  const [output, setOutput] = useState([]); // Array of React elements for output
   const [input, setInput] = useState('');
   const terminalRef = useRef(null);
   const inputRef = useRef(null);
 
-  const asciiArt = `
+  // ASCII Art to be displayed when terminal loads
+  const asciiArt = 
 ███╗   ██╗███████╗██╗  ██╗████████╗██╗   ██╗███╗   ███╗
 ████╗  ██║██╔════╝╚██╗██╔╝╚══██╔══╝██║   ██║████╗ ████║
 ██╔██╗ ██║█████╗   ╚███╔╝    ██║   ██║   ██║██╔████╔██║
 ██║╚██╗██║██╔══╝   ██╔██╗    ██║   ╚██╗ ██╔╝██║╚██╔╝██║
 ██║ ╚████║███████╗██╔╝ ██╗   ██║    ╚████╔╝ ██║ ╚═╝ ██║
 ╚═╝  ╚═══╝╚══════╝╚═╝  ╚═╝   ╚═╝     ╚═══╝  ╚═╝     ╚═╝  
-`;
+;
 
+  // Function to handle the execution of commands
   const executeCommand = async (command) => {
+    // If the command is 'showimage', handle it client-side
     if (command.startsWith('showimage')) {
-      const args = command.split(' ');
-      const imageUrl = args[1];
-      const cssStyles = args.slice(2).join(' ');
+      const args = command.split(' '); // Split the command into args
+      const imageUrl = args[1]; // Image URL should be the second argument
+      const cssStyles = args.slice(2).join(' '); // Collect all CSS arguments after the URL
 
       handleShowImageCommand(imageUrl, cssStyles);
-      return;
+      return; // Prevent further execution through the API
     }
 
+    // If it's not 'showimage', send the command to the API
     const response = await fetch('/api/execute', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify({ command }),
     });
 
     const data = await response.json();
+
     if (response.ok) {
-      setOutput((prevOutput) => [
-        ...prevOutput,
-        <div key={data.result} className="line">{data.result}</div>
-      ]);
+      setOutput((prevOutput) => [...prevOutput, <div key={data.result}>{data.result}</div>]); // Just display raw text
     } else {
-      setOutput((prevOutput) => [
-        ...prevOutput,
-        <div key={data.error} className="line">Error: {data.error}</div>
-      ]);
+      setOutput((prevOutput) => [...prevOutput, <div key={data.error}>Error: {data.error}</div>]);
     }
 
+    // Clear input after execution
     setInput('');
     scrollToBottom();
   };
 
+  // Handle the showimage command by rendering the image with optional CSS
   const handleShowImageCommand = (url, cssStyles) => {
     if (url) {
+      // Set the image with the passed URL and CSS
       setOutput((prevOutput) => [
         ...prevOutput,
         <div style={{ textAlign: 'center', marginTop: '20px' }} key={url}>
           <Image
             src={url}
             alt="Terminal Image"
-            width={500}
-            height={300}
-            loader={customImageLoader}
+            width={500} // Specify a width for Next.js Image component
+            height={300} // Specify a height
+            loader={customImageLoader} // Use the custom loader
             style={{ maxWidth: '100%', height: 'auto', ...parseCssStyles(cssStyles) }}
           />
-        </div>
+        </div>,
       ]);
     } else {
       setOutput((prevOutput) => [...prevOutput, <div key="invalid-url">Error: Invalid image URL.</div>]);
     }
   };
 
+  // Custom image loader function to bypass Next.js's built-in image optimization
   const customImageLoader = ({ src }) => {
-    return src;
+    return src; // Simply return the image source URL
   };
 
+  // Function to parse CSS styles from string to an object
   const parseCssStyles = (styles) => {
     const styleObj = {};
     styles.split(';').forEach((style) => {
@@ -84,9 +90,23 @@ export default function Home() {
     return styleObj;
   };
 
+  // Simulate rough scrolling effect in terminal
   const scrollToBottom = () => {
     if (terminalRef.current) {
-      terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
+      const lastItem = terminalRef.current.lastElementChild;
+      lastItem?.scrollIntoView({ behavior: 'smooth' }); // Smooth scroll to the bottom
+    }
+  };
+
+  // Track whether the user is manually scrolling
+  const handleScroll = () => {
+    const terminal = terminalRef.current;
+    if (terminal.scrollTop === 0 || terminal.scrollHeight === terminal.scrollTop + terminal.clientHeight) {
+      // If the user is at the top or bottom of the terminal, enable smooth scroll
+      terminal.style.scrollBehavior = 'smooth';
+    } else {
+      // If the user is scrolling somewhere in the middle, disable smooth scroll for rough behavior
+      terminal.style.scrollBehavior = 'auto';
     }
   };
 
@@ -100,78 +120,43 @@ export default function Home() {
     setInput(e.target.value);
   };
 
-  // Refined rough scrolling logic
-  useEffect(() => {
-    const terminal = terminalRef.current;
-
-    const handleWheel = (event) => {
-      event.preventDefault(); // Prevent smooth scrolling
-
-      const delta = event.deltaY;
-      const step = 10; // Smaller step for slower scroll
-      const interval = 40; // Adjust this for a smoother rough scroll
-
-      const currentScroll = terminal.scrollTop;
-      const terminalHeight = terminal.scrollHeight - terminal.clientHeight;
-
-      let remainingScroll = delta;
-      const direction = Math.sign(delta);
-
-      // Only apply rough scroll when it's within valid scrollable bounds
-      if (
-        (direction > 0 && currentScroll + remainingScroll < terminalHeight) ||
-        (direction < 0 && currentScroll + remainingScroll > 0)
-      ) {
-        let remainingSteps = Math.abs(remainingScroll / step);
-        let intervalId = setInterval(() => {
-          if (remainingSteps <= 0) {
-            clearInterval(intervalId);
-          } else {
-            terminal.scrollTop += direction * step;
-            remainingSteps--;
-          }
-        }, interval);
-      } else {
-        // Let the natural scroll behavior kick in if at the top/bottom
-        terminal.scrollTop += remainingScroll;
-      }
-    };
-
-    if (terminal) {
-      terminal.addEventListener('wheel', handleWheel, { passive: false });
-    }
-
-    return () => {
-      if (terminal) {
-        terminal.removeEventListener('wheel', handleWheel);
-      }
-    };
-  }, []);
-
+  // When terminal loads, show ASCII Art and update the page title
   useEffect(() => {
     setOutput([asciiArt]);
-    document.title = 'NextVM';
+    scrollToBottom();
+    document.title = 'NextVM'; // Update the title of the page
+
+    // Add scroll event listener to enable rough scrolling
+    const terminal = terminalRef.current;
+    terminal.addEventListener('scroll', handleScroll);
+
+    return () => {
+      terminal.removeEventListener('scroll', handleScroll);
+    };
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex flex-col" style={{ margin: 0, padding: 0, height: '100vh', width: '100vw' }}>
+    <div
+      className="min-h-screen bg-gray-900 text-white flex flex-col"
+      style={{ margin: 0, padding: 0, height: '100vh', width: '100vw' }} // Make the terminal take up the entire screen
+    >
+      {/* Terminal Output */}
       <div
         ref={terminalRef}
         className="bg-gray-800 flex-grow p-6 text-white overflow-auto font-mono"
         style={{
-          whiteSpace: 'pre',
+          whiteSpace: 'pre', // Ensure whitespace is preserved for ASCII art
           wordWrap: 'normal',
           lineHeight: '1.4',
-          scrollSnapType: 'y mandatory',
+          scrollBehavior: 'smooth', // Default to smooth scroll
         }}
       >
         {output.map((item, index) => (
-          <div key={index} className="line" style={{ scrollSnapAlign: 'start' }}>
-            {item}
-          </div>
+          <div key={index}>{item}</div> // Dynamically render React elements like Image or text
         ))}
       </div>
 
+      {/* Terminal Input */}
       <div className="bg-gray-800 p-4 flex items-center">
         <span className="text-green-500">$</span>
         <input
@@ -185,8 +170,8 @@ export default function Home() {
           placeholder="Enter a command"
           style={{
             border: 'none',
-            backgroundColor: 'transparent',
-            fontFamily: 'monospace',
+            backgroundColor: 'transparent', // Make the input blend with terminal background
+            fontFamily: 'monospace', // Ensure the input uses a monospace font
           }}
         />
       </div>
