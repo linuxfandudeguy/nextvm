@@ -6,6 +6,7 @@ export default function Home() {
   const terminalRef = useRef(null);
   const inputRef = useRef(null);
   const [theme, setTheme] = useState(null); // Store the current theme URL
+  const themeLinkRef = useRef(null); // Ref to the <link> element for theme styles
 
   // ASCII Art to be displayed when terminal loads
   const asciiArt = `
@@ -52,6 +53,22 @@ export default function Home() {
   const handleNextVMCommand = (url) => {
     if (url) {
       setTheme(url); // Update theme based on the URL provided in the command
+
+      // Dynamically create and append the link element to the document head
+      const linkElement = document.createElement('link');
+      linkElement.rel = 'stylesheet';
+      linkElement.href = url;
+      linkElement.id = 'dynamic-theme'; // Add an ID to easily remove it later
+
+      // If a previous theme is already set, remove the old theme link
+      if (themeLinkRef.current) {
+        document.head.removeChild(themeLinkRef.current);
+      }
+
+      // Append the new theme stylesheet to the head
+      document.head.appendChild(linkElement);
+      themeLinkRef.current = linkElement; // Store the link element for later reference
+
       setOutput((prevOutput) => prevOutput + `\n[Terminal theme changed to: ${url}]`);
     } else {
       setOutput((prevOutput) => prevOutput + '\nError: Invalid theme URL.');
