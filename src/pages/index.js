@@ -8,14 +8,14 @@ export default function Home() {
   const inputRef = useRef(null);
 
   // ASCII Art to be displayed when terminal loads
-  const asciiArt = 
+  const asciiArt = `
 ███╗   ██╗███████╗██╗  ██╗████████╗██╗   ██╗███╗   ███╗
 ████╗  ██║██╔════╝╚██╗██╔╝╚══██╔══╝██║   ██║████╗ ████║
 ██╔██╗ ██║█████╗   ╚███╔╝    ██║   ██║   ██║██╔████╔██║
 ██║╚██╗██║██╔══╝   ██╔██╗    ██║   ╚██╗ ██╔╝██║╚██╔╝██║
 ██║ ╚████║███████╗██╔╝ ██╗   ██║    ╚████╔╝ ██║ ╚═╝ ██║
 ╚═╝  ╚═══╝╚══════╝╚═╝  ╚═╝   ╚═╝     ╚═══╝  ╚═╝     ╚═╝  
-;
+`;
 
   // Function to handle the execution of commands
   const executeCommand = async (command) => {
@@ -93,20 +93,10 @@ export default function Home() {
   // Simulate rough scrolling effect in terminal
   const scrollToBottom = () => {
     if (terminalRef.current) {
-      const lastItem = terminalRef.current.lastElementChild;
-      lastItem?.scrollIntoView({ behavior: 'smooth' }); // Smooth scroll to the bottom
-    }
-  };
-
-  // Track whether the user is manually scrolling
-  const handleScroll = () => {
-    const terminal = terminalRef.current;
-    if (terminal.scrollTop === 0 || terminal.scrollHeight === terminal.scrollTop + terminal.clientHeight) {
-      // If the user is at the top or bottom of the terminal, enable smooth scroll
-      terminal.style.scrollBehavior = 'smooth';
-    } else {
-      // If the user is scrolling somewhere in the middle, disable smooth scroll for rough behavior
-      terminal.style.scrollBehavior = 'auto';
+      // Add a small delay for rough scrolling effect
+      setTimeout(() => {
+        terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
+      }, 100); // Adjust delay if necessary
     }
   };
 
@@ -125,14 +115,6 @@ export default function Home() {
     setOutput([asciiArt]);
     scrollToBottom();
     document.title = 'NextVM'; // Update the title of the page
-
-    // Add scroll event listener to enable rough scrolling
-    const terminal = terminalRef.current;
-    terminal.addEventListener('scroll', handleScroll);
-
-    return () => {
-      terminal.removeEventListener('scroll', handleScroll);
-    };
   }, []);
 
   return (
@@ -148,7 +130,6 @@ export default function Home() {
           whiteSpace: 'pre', // Ensure whitespace is preserved for ASCII art
           wordWrap: 'normal',
           lineHeight: '1.4',
-          scrollBehavior: 'smooth', // Default to smooth scroll
         }}
       >
         {output.map((item, index) => (
