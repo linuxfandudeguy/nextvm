@@ -40,9 +40,9 @@ export default function Home() {
     const data = await response.json();
 
     if (response.ok) {
-      setOutput((prevOutput) => [...prevOutput, <div key={data.result}>{data.result}</div>]); // Just display raw text
+      setOutput((prevOutput) => [...prevOutput, <div key={data.result} className="line">{data.result}</div>]); // Just display raw text in a line div
     } else {
-      setOutput((prevOutput) => [...prevOutput, <div key={data.error}>Error: {data.error}</div>]);
+      setOutput((prevOutput) => [...prevOutput, <div key={data.error} className="line">Error: {data.error}</div>]);
     }
 
     setInput('');
@@ -152,10 +152,13 @@ export default function Home() {
           whiteSpace: 'pre',
           wordWrap: 'normal',
           lineHeight: '1.4',
+          scrollSnapType: 'y mandatory', // Enable scroll snap
         }}
       >
         {output.map((item, index) => (
-          <div key={index}>{item}</div>
+          <div key={index} className="line" style={{ scrollSnapAlign: 'start' }}>
+            {item}
+          </div>
         ))}
       </div>
 
