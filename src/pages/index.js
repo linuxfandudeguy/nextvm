@@ -106,22 +106,26 @@ export default function Home() {
     const terminal = terminalRef.current;
 
     const handleWheel = (event) => {
-      event.preventDefault();
-      const delta = event.deltaY;
-      const step = 20; // Adjust for roughness
-      const interval = 20; // Milliseconds per step
+      // Only prevent default if it's scroll within terminal
+      if (event.target === terminal) {
+        event.preventDefault();
 
-      let remainingScroll = delta;
+        const delta = event.deltaY;
+        const step = 20; // Adjust for roughness
+        const interval = 20; // Milliseconds per step
 
-      const scrollInterval = setInterval(() => {
-        if (Math.abs(remainingScroll) <= step) {
-          terminal.scrollTop += remainingScroll;
-          clearInterval(scrollInterval);
-        } else {
-          terminal.scrollTop += step * Math.sign(delta);
-          remainingScroll -= step * Math.sign(delta);
-        }
-      }, interval);
+        let remainingScroll = delta;
+
+        const scrollInterval = setInterval(() => {
+          if (Math.abs(remainingScroll) <= step) {
+            terminal.scrollTop += remainingScroll;
+            clearInterval(scrollInterval);
+          } else {
+            terminal.scrollTop += step * Math.sign(delta);
+            remainingScroll -= step * Math.sign(delta);
+          }
+        }, interval);
+      }
     };
 
     if (terminal) {
