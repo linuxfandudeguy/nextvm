@@ -92,13 +92,14 @@ export default function Home() {
 
   // Function to scroll to the bottom only if the user is at the bottom
   const scrollToBottom = () => {
-    if (terminalRef.current) {
+    const terminal = terminalRef.current;
+    if (terminal) {
       const isAtBottom =
-        terminalRef.current.scrollHeight - terminalRef.current.scrollTop === terminalRef.current.clientHeight;
+        terminal.scrollHeight - terminal.scrollTop === terminal.clientHeight;
 
-      // Only scroll to the bottom if we're already at the bottom
+      // If at the bottom, scroll to the bottom
       if (isAtBottom) {
-        terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
+        terminal.scrollTop = terminal.scrollHeight; // Directly set scrollTop to bottom
       }
     }
   };
@@ -149,7 +150,7 @@ export default function Home() {
           whiteSpace: 'pre', // Ensure whitespace is preserved for ASCII art
           wordWrap: 'normal',
           lineHeight: '1.4',
-          scrollBehavior: 'auto', // Disable smooth scrolling
+          scrollBehavior: 'unset', // Ensure no smooth scrolling
         }}
         onScroll={handleScroll} // Detect scrolling
       >
