@@ -2,5 +2,6 @@
 const nextConfig = {
   reactStrictMode: true,
 };
-
+// next
 export default nextConfig;
+
