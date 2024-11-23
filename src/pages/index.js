@@ -59,31 +59,18 @@ export default function Home() {
       // Set the image with the passed URL and CSS
       setOutput((prevOutput) => prevOutput + `\n[Displaying image from: ${url}]`);
 
-      // Split the CSS into a style object (simple example, can be extended)
-      const styleObj = cssToObject(cssStyles);
+      // Generate an HTML block with image and styles
+      const imageHtml = `
+        <div style="${cssStyles}">
+          <img src="${url}" alt="Terminal Image" style="max-width: 100%; ${cssStyles}" />
+        </div>
+      `;
 
-      // Display the image with the dynamic styles
-      setOutput((prevOutput) => prevOutput + `
-      <div style="${cssStyles}">
-        <img src="${url}" alt="Terminal Image" style="max-width: 100%; ${cssStyles}" />
-      </div>
-      `);
+      // Append the raw HTML to output using dangerouslySetInnerHTML
+      setOutput((prevOutput) => prevOutput + imageHtml);
     } else {
       setOutput((prevOutput) => prevOutput + '\nError: Invalid image URL.');
     }
-  };
-
-  // Function to convert a CSS string to an object (simple version)
-  const cssToObject = (cssStr) => {
-    const cssArray = cssStr.split(';');
-    let styleObj = {};
-    cssArray.forEach((css) => {
-      const [key, value] = css.split(':');
-      if (key && value) {
-        styleObj[key.trim()] = value.trim();
-      }
-    });
-    return styleObj;
   };
 
   // Simulate rough scrolling effect in terminal
