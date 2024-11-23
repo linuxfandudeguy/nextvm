@@ -75,10 +75,11 @@ export default function Home() {
     setInput(e.target.value);
   };
 
-  // When terminal loads, show ASCII Art
+  // When terminal loads, show ASCII Art and update the page title
   useEffect(() => {
     setOutput(asciiArt);
     scrollToBottom();
+    document.title = 'NextVM'; // Update the title of the page
   }, []);
 
   return (
