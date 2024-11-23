@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image'; // Import Next.js Image component
 
 export default function Home() {
-  const [output, setOutput] = useState('');
+  const [output, setOutput] = useState([]);
   const [input, setInput] = useState('');
   const terminalRef = useRef(null);
   const inputRef = useRef(null);
@@ -43,9 +43,9 @@ export default function Home() {
     const data = await response.json();
 
     if (response.ok) {
-      setOutput((prevOutput) => prevOutput + '\n' + data.result); // Just display raw text
+      setOutput((prevOutput) => [...prevOutput, data.result]); // Just display raw text
     } else {
-      setOutput((prevOutput) => prevOutput + '\nError: ' + data.error);
+      setOutput((prevOutput) => [...prevOutput, 'Error: ' + data.error]);
     }
 
     // Clear input after execution
@@ -57,20 +57,36 @@ export default function Home() {
   const handleShowImageCommand = (url, cssStyles) => {
     if (url) {
       // Set the image with the passed URL and CSS
-      setOutput((prevOutput) => prevOutput + `\n[Displaying image from: ${url}]`);
+      setOutput((prevOutput) => [...prevOutput, `Displaying image from: ${url}`]);
 
-      // Generate an HTML block with image and styles
-      const imageHtml = `
-        <div style="${cssStyles}">
-          <img src="${url}" alt="Terminal Image" style="max-width: 100%; ${cssStyles}" />
-        </div>
-      `;
-
-      // Append the raw HTML to output using dangerouslySetInnerHTML
-      setOutput((prevOutput) => prevOutput + imageHtml);
+      // Dynamically add the image and pass CSS as inline styles
+      setOutput((prevOutput) => [
+        ...prevOutput,
+        <div style={{ textAlign: 'center', marginTop: '20px' }} key={url}>
+          <Image
+            src={url}
+            alt="Terminal Image"
+            width={500} // Specify a width for Next.js Image component
+            height={300} // Specify a height
+            style={{ maxWidth: '100%', height: 'auto', ...parseCssStyles(cssStyles) }}
+          />
+        </div>,
+      ]);
     } else {
-      setOutput((prevOutput) => prevOutput + '\nError: Invalid image URL.');
+      setOutput((prevOutput) => [...prevOutput, 'Error: Invalid image URL.']);
     }
+  };
+
+  // Function to parse CSS styles from string to an object
+  const parseCssStyles = (styles) => {
+    const styleObj = {};
+    styles.split(';').forEach((style) => {
+      const [key, value] = style.split(':').map((s) => s.trim());
+      if (key && value) {
+        styleObj[key] = value;
+      }
+    });
+    return styleObj;
   };
 
   // Simulate rough scrolling effect in terminal
@@ -92,7 +108,7 @@ export default function Home() {
 
   // When terminal loads, show ASCII Art and update the page title
   useEffect(() => {
-    setOutput(asciiArt);
+    setOutput([asciiArt]);
     scrollToBottom();
     document.title = 'NextVM'; // Update the title of the page
   }, []);
@@ -112,7 +128,9 @@ export default function Home() {
           lineHeight: '1.4',
         }}
       >
-        <pre>{output}</pre> {/* Render raw text output */}
+        {output.map((item, index) => (
+          <div key={index}>{item}</div>
+        ))}
       </div>
 
       {/* Terminal Input */}
