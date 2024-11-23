@@ -58,7 +58,16 @@ export default function Home() {
       const linkElement = document.createElement('link');
       linkElement.rel = 'stylesheet';
       linkElement.href = url;
-      linkElement.id = 'dynamic-theme'; // Add an ID to easily remove it later
+      linkElement.id = 'nextvm-theme'; // Add an ID to easily remove it later
+
+      // Add event listeners for load and error to check if the CSS is loading correctly
+      linkElement.onload = () => {
+        setOutput((prevOutput) => prevOutput + `\n[Terminal theme successfully changed to: ${url}]`);
+      };
+
+      linkElement.onerror = () => {
+        setOutput((prevOutput) => prevOutput + `\nError: Failed to load the theme from: ${url}`);
+      };
 
       // If a previous theme is already set, remove the old theme link
       if (themeLinkRef.current) {
