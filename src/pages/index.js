@@ -149,6 +149,7 @@ export default function Home() {
           whiteSpace: 'pre', // Ensure whitespace is preserved for ASCII art
           wordWrap: 'normal',
           lineHeight: '1.4',
+          scrollBehavior: 'auto', // Disable smooth scrolling
         }}
         onScroll={handleScroll} // Detect scrolling
       >
