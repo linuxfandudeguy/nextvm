@@ -2,12 +2,10 @@ import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image'; // Import Next.js Image component
 
 export default function Home() {
-  const [output, setOutput] = useState([]);
+  const [output, setOutput] = useState([]); // Array of React elements for output
   const [input, setInput] = useState('');
   const terminalRef = useRef(null);
   const inputRef = useRef(null);
-  const [theme, setTheme] = useState(null); // Store the current theme URL
-  const themeLinkRef = useRef(null); // Ref to the <link> element for theme styles
 
   // ASCII Art to be displayed when terminal loads
   const asciiArt = `
@@ -43,9 +41,9 @@ export default function Home() {
     const data = await response.json();
 
     if (response.ok) {
-      setOutput((prevOutput) => [...prevOutput, data.result]); // Just display raw text
+      setOutput((prevOutput) => [...prevOutput, <div key={data.result}>{data.result}</div>]); // Just display raw text
     } else {
-      setOutput((prevOutput) => [...prevOutput, 'Error: ' + data.error]);
+      setOutput((prevOutput) => [...prevOutput, <div key={data.error}>Error: {data.error}</div>]);
     }
 
     // Clear input after execution
@@ -57,9 +55,6 @@ export default function Home() {
   const handleShowImageCommand = (url, cssStyles) => {
     if (url) {
       // Set the image with the passed URL and CSS
-      setOutput((prevOutput) => [...prevOutput, `Displaying image from: ${url}`]);
-
-      // Dynamically add the image and pass CSS as inline styles
       setOutput((prevOutput) => [
         ...prevOutput,
         <div style={{ textAlign: 'center', marginTop: '20px' }} key={url}>
@@ -68,13 +63,19 @@ export default function Home() {
             alt="Terminal Image"
             width={500} // Specify a width for Next.js Image component
             height={300} // Specify a height
+            loader={customImageLoader} // Use the custom loader
             style={{ maxWidth: '100%', height: 'auto', ...parseCssStyles(cssStyles) }}
           />
         </div>,
       ]);
     } else {
-      setOutput((prevOutput) => [...prevOutput, 'Error: Invalid image URL.']);
+      setOutput((prevOutput) => [...prevOutput, <div key="invalid-url">Error: Invalid image URL.</div>]);
     }
+  };
+
+  // Custom image loader function to bypass Next.js's built-in image optimization
+  const customImageLoader = ({ src }) => {
+    return src; // Simply return the image source URL
   };
 
   // Function to parse CSS styles from string to an object
@@ -129,7 +130,7 @@ export default function Home() {
         }}
       >
         {output.map((item, index) => (
-          <div key={index}>{item}</div>
+          <div key={index}>{item}</div> // Dynamically render React elements like Image or text
         ))}
       </div>
 
