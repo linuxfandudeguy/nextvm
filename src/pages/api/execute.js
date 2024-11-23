@@ -10,12 +10,12 @@ export default function handler(req, res) {
     processes.forEach(proc => proc.kill());
     processes.length = 0;
 
-    const process = exec(bash -c "${command}", (error, stdout, stderr) => {
+    const process = exec(`zsh -c "${command}"`, (error, stdout, stderr) => { // Correct string interpolation
       if (error) {
-        return res.status(500).json({ error: Execution failed: ${error.message} });
+        return res.status(500).json({ error: `Execution failed: ${error.message}` });
       }
       if (stderr) {
-        return res.status(500).json({ error: stderr: ${stderr} });
+        return res.status(500).json({ error: `stderr: ${stderr}` });
       }
       res.status(200).json({ result: stdout });
     });
@@ -24,7 +24,7 @@ export default function handler(req, res) {
     processes.push(process);
 
     process.on('close', (code) => {
-      console.log(Process exited with code ${code});
+      console.log(`Process exited with code ${code}`);
     });
 
   } else {
