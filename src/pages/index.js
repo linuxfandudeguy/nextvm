@@ -1,8 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
-import Image from 'next/image';
 
 export default function Home() {
-  const [tabs, setTabs] = useState([{ id: 1, output: [], input: '' }]);
+  const [tabs, setTabs] = useState([{ id: 1, output: [asciiArt], input: '' }]);
   const [activeTabId, setActiveTabId] = useState(1);
   const terminalRef = useRef(null);
 
@@ -22,7 +21,7 @@ export default function Home() {
   const executeCommand = async (command) => {
     const activeTab = getActiveTab();
 
-    // Display the entered command in the terminal
+    // Display entered command
     setTabs((prevTabs) =>
       prevTabs.map((tab) =>
         tab.id === activeTabId
@@ -39,7 +38,7 @@ export default function Home() {
       )
     );
 
-    // Handle specific commands locally
+    // Handle local commands
     if (command === 'clear') {
       clearTerminal();
       return;
@@ -150,7 +149,7 @@ export default function Home() {
       className="min-h-screen bg-gray-900 text-white flex flex-col"
       style={{ margin: 0, padding: 0, height: '100vh', width: '100vw' }}
     >
-      <div className="flex bg-gray-800 p-2 border-b border-gray-700">
+      <div className="flex bg-gray-900 p-2 border-b border-gray-700">
         {tabs.map((tab) => (
           <div
             key={tab.id}
@@ -180,14 +179,14 @@ export default function Home() {
       </div>
       <div
         ref={terminalRef}
-        className="flex-grow p-4 overflow-auto bg-black text-white"
+        className="flex-grow p-4 overflow-auto bg-gray-900 text-white"
         style={{ whiteSpace: 'pre' }}
       >
         {getActiveTab()?.output.map((item, index) => (
           <div key={index}>{item}</div>
         ))}
       </div>
-      <div className="p-2 bg-gray-800 flex items-center">
+      <div className="p-2 bg-gray-900 flex items-center">
         <span className="text-green-500">root@next:~#</span>
         <input
           type="text"
