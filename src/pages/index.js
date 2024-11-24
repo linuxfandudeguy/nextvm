@@ -1,5 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image'; // Import Next.js Image component
+import { GeistMono } from 'next/font/google'; // Import Geist Mono font
+
+// Load the Geist Mono font
+const geistMono = GeistMono({ subsets: ['latin'] });
 
 export default function Home() {
   const [output, setOutput] = useState([]); // Array of React elements for output
@@ -19,6 +23,14 @@ export default function Home() {
 
   // Function to handle the execution of commands
   const executeCommand = async (command) => {
+    // Display the prompt and the command
+    setOutput((prevOutput) => [
+      ...prevOutput,
+      <div key={`prompt-${Date.now()}`}>
+        <span className="text-green-500">root@next:~#</span> {command}
+      </div>,
+    ]);
+
     // If the command is 'showimage', handle it client-side
     if (command.startsWith('showimage')) {
       const args = command.split(' '); // Split the command into args
@@ -41,9 +53,15 @@ export default function Home() {
     const data = await response.json();
 
     if (response.ok) {
-      setOutput((prevOutput) => [...prevOutput, <div key={data.result}>{data.result}</div>]); // Just display raw text
+      setOutput((prevOutput) => [
+        ...prevOutput,
+        <div key={`result-${Date.now()}`}>{data.result}</div>, // Just display raw text
+      ]);
     } else {
-      setOutput((prevOutput) => [...prevOutput, <div key={data.error}>Error: {data.error}</div>]);
+      setOutput((prevOutput) => [
+        ...prevOutput,
+        <div key={`error-${Date.now()}`}>Error: {data.error}</div>,
+      ]);
     }
 
     // Clear input after execution
@@ -69,7 +87,10 @@ export default function Home() {
         </div>,
       ]);
     } else {
-      setOutput((prevOutput) => [...prevOutput, <div key="invalid-url">Error: Invalid image URL.</div>]);
+      setOutput((prevOutput) => [
+        ...prevOutput,
+        <div key="invalid-url">Error: Invalid image URL.</div>,
+      ]);
     }
   };
 
@@ -139,13 +160,13 @@ export default function Home() {
 
   return (
     <div
-      className="min-h-screen bg-gray-900 text-white flex flex-col"
+      className={`min-h-screen bg-gray-900 text-white flex flex-col ${geistMono.className}`}
       style={{ margin: 0, padding: 0, height: '100vh', width: '100vw' }} // Make the terminal take up the entire screen
     >
       {/* Terminal Output */}
       <div
         ref={terminalRef}
-        className="bg-gray-800 flex-grow p-6 text-white overflow-auto font-mono"
+        className="bg-gray-800 flex-grow p-6 text-white overflow-auto"
         style={{
           whiteSpace: 'pre', // Ensure whitespace is preserved for ASCII art
           wordWrap: 'normal',
@@ -161,7 +182,7 @@ export default function Home() {
 
       {/* Terminal Input */}
       <div className="bg-gray-800 p-4 flex items-center">
-        <span className="text-green-500">$</span>
+        <span className="text-green-500">root@next:~#</span>
         <input
           ref={inputRef}
           type="text"
