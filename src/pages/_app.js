@@ -3,7 +3,8 @@ import "@/styles/globals.css"; // Your global styles
 
 export default function App({ Component, pageProps }) {
   useEffect(() => {
-    // Register the service worker when the page is loaded
+    // comment out the service worker because it won't work
+    /*
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker
         .register('/sw.js')
@@ -14,6 +15,7 @@ export default function App({ Component, pageProps }) {
           console.error('Service Worker registration failed:', error);
         });
     }
+    */
   }, []); // Empty dependency array ensures this runs once on component mount
 
   return <Component {...pageProps} />;
