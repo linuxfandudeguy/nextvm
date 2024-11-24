@@ -3,7 +3,7 @@
 @tailwind utilities;
 @font-face {
   font-family: 'GeistMono';
-  src: url('./pages/fonts/GeistMonoVF.woff') format('woff');
+  src: url('../pages/fonts/GeistMonoVF.woff') format('woff');
   font-weight: normal;
   font-style: normal;
 }
