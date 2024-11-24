@@ -182,22 +182,30 @@ export default function Home() {
       lastIndex = ansiRegex.lastIndex; // Update last index to after the ANSI code
 
       const codeList = ansiCode.split(';').map(Number);
+
+      // Handle foreground RGB color: \x1b[38;2;r;g;b
       if (codeList[0] === 38 && codeList[1] === 2 && codeList.length >= 5) {
-        // Foreground RGB color: \x1b[38;2;{r};{g};{b}m
         const [_, __, r, g, b] = codeList;
         style = { ...style, color: `rgb(${r}, ${g}, ${b})` };
-      } else if (codeList[0] === 48 && codeList[1] === 2 && codeList.length >= 5) {
-        // Background RGB color: \x1b[48;2;{r};{g};{b}m
+      }
+      // Handle background RGB color: \x1b[48;2;r;g;b
+      else if (codeList[0] === 48 && codeList[1] === 2 && codeList.length >= 5) {
         const [_, __, r, g, b] = codeList;
         style = { ...style, backgroundColor: `rgb(${r}, ${g}, ${b})` };
-      } else if (codeList[0] === 0) {
-        // Reset styles: \x1b[0m
-        style = {};
       }
-      // You can add more ANSI codes handling here if needed
+      // Handle 8-bit foreground color (e.g., \x1b[38;5;{colorCode}m)
+      else if (codeList[0] === 38 && codeList[1] === 5) {
+        const colorCode = codeList[2];
+        style = { ...style, color: `rgb(${colorCode}, ${colorCode}, ${colorCode})` };
+      }
+      // Handle 8-bit background color (e.g., \x1b[48;5;{colorCode}m)
+      else if (codeList[0] === 48 && codeList[1] === 5) {
+        const colorCode = codeList[2];
+        style = { ...style, backgroundColor: `rgb(${colorCode}, ${colorCode}, ${colorCode})` };
+      }
     }
 
-    // Push remaining text after the last ANSI code
+    // Push the remaining text after the last match
     if (lastIndex < text.length) {
       parts.push(
         <span style={style} key={`text-${lastIndex}`}>
@@ -206,41 +214,24 @@ export default function Home() {
       );
     }
 
-    return parts.length > 0 ? parts : text;
+    return parts;
   };
 
   return (
-    <div
-      className="min-h-screen bg-gray-900 text-white flex flex-col"
-      style={{
-        margin: 0,
-        padding: 0,
-        height: '100vh',
-        width: '100vw',
-        fontFamily: 'GeistMono, monospace', // Apply GeistMono font globally with monospace fallback
-      }}
-    >
-      {/* Terminal Output */}
+    <div>
       <div
         ref={terminalRef}
-        className="bg-gray-800 flex-grow p-6 text-white overflow-auto"
-        style={{
-          whiteSpace: 'pre-wrap', // Preserve whitespace and allow wrapping
-          wordWrap: 'break-word',
-          lineHeight: '1.4',
-          scrollBehavior: 'unset', // Ensure no smooth scrolling
-        }}
-        onScroll={handleScroll} // Detect scrolling
+        className="terminal-container"
+        style={{ overflowY: 'auto', maxHeight: '80vh' }}
+        onScroll={handleScroll}
       >
-        {output.map((item, index) => (
+        {output.map((line, index) => (
           <div key={index}>
-            {typeof item === 'string' ? parseAnsiToHtml(item) : item} {/* Parse ANSI codes */}
+            {parseAnsiToHtml(line)}
           </div>
         ))}
       </div>
-
-      {/* Terminal Input */}
-      <div className="bg-gray-800 p-4 flex items-center">
+      <div className="input-area">
         <span className="text-green-500">root@next:~#</span>
         <input
           ref={inputRef}
@@ -248,13 +239,15 @@ export default function Home() {
           value={input}
           onChange={handleInputChange}
           onKeyDown={handleKeyPress}
-          className="bg-transparent text-white p-2 rounded-md focus:outline-none flex-grow"
-          autoFocus
-          placeholder="Enter a command"
+          className="input-box"
           style={{
+            outline: 'none',
             border: 'none',
-            backgroundColor: 'transparent', // Make the input blend with terminal background
-            fontFamily: 'monospace', // Ensure the input uses a monospace font
+            backgroundColor: 'transparent',
+            color: 'inherit',
+            width: 'calc(100% - 120px)',
+            fontFamily: 'monospace',
+            padding: '10px',
           }}
         />
       </div>
