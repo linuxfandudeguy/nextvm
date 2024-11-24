@@ -1,9 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image'; // Import Next.js Image component
-import { GeistMono } from 'next/font/google'; // Import Geist Mono font
-
-// Load the Geist Mono font
-const geistMono = GeistMono({ subsets: ['latin'] });
 
 export default function Home() {
   const [output, setOutput] = useState([]); // Array of React elements for output
@@ -160,8 +156,8 @@ export default function Home() {
 
   return (
     <div
-      className={`min-h-screen bg-gray-900 text-white flex flex-col ${geistMono.className}`}
-      style={{ margin: 0, padding: 0, height: '100vh', width: '100vw' }} // Make the terminal take up the entire screen
+      className="min-h-screen bg-gray-900 text-white flex flex-col"
+      style={{ margin: 0, padding: 0, height: '100vh', width: '100vw', fontFamily: 'GeistMono' }} // Apply GeistMono font globally
     >
       {/* Terminal Output */}
       <div
