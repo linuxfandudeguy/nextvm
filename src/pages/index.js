@@ -8,7 +8,7 @@ export default function Home() {
   const inputRef = useRef(null);
 
   // ASCII Art to be displayed when terminal loads
-  const asciiArt = `
+  const asciiArt = 
  ██████   █████                       █████    █████   █████ ██████   ██████
 ░░██████ ░░███                       ░░███    ░░███   ░░███ ░░██████ ██████ 
  ░███░███ ░███   ██████  █████ █████ ███████   ░███    ░███  ░███░█████░███ 
@@ -17,14 +17,14 @@ export default function Home() {
  ░███  ░░█████ ░███░░░    ███░░░███   ░███ ███  ░░░█████░    ░███      ░███ 
  █████  ░░█████░░██████  █████ █████  ░░█████     ░░███      █████     █████
 ░░░░░    ░░░░░  ░░░░░░  ░░░░░ ░░░░░    ░░░░░       ░░░      ░░░░░     ░░░░░ 
-`;
+;
 
   // Function to handle the execution of commands
   const executeCommand = async (command) => {
     // Display the prompt and the command
     setOutput((prevOutput) => [
       ...prevOutput,
-      <div key={`prompt-${Date.now()}`}>
+      <div key={prompt-${Date.now()}}>
         <span className="text-green-500">root@next:~#</span> {command}
       </div>,
     ]);
@@ -53,12 +53,12 @@ export default function Home() {
     if (response.ok) {
       setOutput((prevOutput) => [
         ...prevOutput,
-        <div key={`result-${Date.now()}`}>{data.result}</div>, // Just display raw text
+        <div key={result-${Date.now()}}>{data.result}</div>, // Just display raw text
       ]);
     } else {
       setOutput((prevOutput) => [
         ...prevOutput,
-        <div key={`error-${Date.now()}`}>Error: {data.error}</div>,
+        <div key={error-${Date.now()}}>Error: {data.error}</div>,
       ]);
     }
 
@@ -173,7 +173,7 @@ export default function Home() {
       // Push the text before the ANSI code
       if (lastIndex < index) {
         parts.push(
-          <span style={style} key={`text-${lastIndex}`}>
+          <span style={style} key={text-${lastIndex}}>
             {text.slice(lastIndex, index)}
           </span>
         );
@@ -182,56 +182,65 @@ export default function Home() {
       lastIndex = ansiRegex.lastIndex; // Update last index to after the ANSI code
 
       const codeList = ansiCode.split(';').map(Number);
-
-      // Handle foreground RGB color: \x1b[38;2;r;g;b
       if (codeList[0] === 38 && codeList[1] === 2 && codeList.length >= 5) {
+        // Foreground RGB color: \x1b[38;2;{r};{g};{b}m
         const [_, __, r, g, b] = codeList;
-        style = { ...style, color: `rgb(${r}, ${g}, ${b})` };
-      }
-      // Handle background RGB color: \x1b[48;2;r;g;b
-      else if (codeList[0] === 48 && codeList[1] === 2 && codeList.length >= 5) {
+        style = { ...style, color: rgb(${r}, ${g}, ${b}) };
+      } else if (codeList[0] === 48 && codeList[1] === 2 && codeList.length >= 5) {
+        // Background RGB color: \x1b[48;2;{r};{g};{b}m
         const [_, __, r, g, b] = codeList;
-        style = { ...style, backgroundColor: `rgb(${r}, ${g}, ${b})` };
+        style = { ...style, backgroundColor: rgb(${r}, ${g}, ${b}) };
+      } else if (codeList[0] === 0) {
+        // Reset styles: \x1b[0m
+        style = {};
       }
-      // Handle 8-bit foreground color (e.g., \x1b[38;5;{colorCode}m)
-      else if (codeList[0] === 38 && codeList[1] === 5) {
-        const colorCode = codeList[2];
-        style = { ...style, color: `rgb(${colorCode}, ${colorCode}, ${colorCode})` };
-      }
-      // Handle 8-bit background color (e.g., \x1b[48;5;{colorCode}m)
-      else if (codeList[0] === 48 && codeList[1] === 5) {
-        const colorCode = codeList[2];
-        style = { ...style, backgroundColor: `rgb(${colorCode}, ${colorCode}, ${colorCode})` };
-      }
+      // You can add more ANSI codes handling here if needed
     }
 
-    // Push the remaining text after the last match
+    // Push remaining text after the last ANSI code
     if (lastIndex < text.length) {
       parts.push(
-        <span style={style} key={`text-${lastIndex}`}>
+        <span style={style} key={text-${lastIndex}}>
           {text.slice(lastIndex)}
         </span>
       );
     }
 
-    return parts;
+    return parts.length > 0 ? parts : text;
   };
 
   return (
-    <div>
+    <div
+      className="min-h-screen bg-gray-900 text-white flex flex-col"
+      style={{
+        margin: 0,
+        padding: 0,
+        height: '100vh',
+        width: '100vw',
+        fontFamily: 'GeistMono, monospace', // Apply GeistMono font globally with monospace fallback
+      }}
+    >
+      {/* Terminal Output */}
       <div
         ref={terminalRef}
-        className="terminal-container"
-        style={{ overflowY: 'auto', maxHeight: '80vh' }}
-        onScroll={handleScroll}
+        className="bg-gray-800 flex-grow p-6 text-white overflow-auto"
+        style={{
+          whiteSpace: 'pre-wrap', // Preserve whitespace and allow wrapping
+          wordWrap: 'break-word',
+          lineHeight: '1.4',
+          scrollBehavior: 'unset', // Ensure no smooth scrolling
+        }}
+        onScroll={handleScroll} // Detect scrolling
       >
-        {output.map((line, index) => (
+        {output.map((item, index) => (
           <div key={index}>
-            {parseAnsiToHtml(line)}
+            {typeof item === 'string' ? parseAnsiToHtml(item) : item} {/* Parse ANSI codes */}
           </div>
         ))}
       </div>
-      <div className="input-area">
+
+      {/* Terminal Input */}
+      <div className="bg-gray-800 p-4 flex items-center">
         <span className="text-green-500">root@next:~#</span>
         <input
           ref={inputRef}
@@ -239,15 +248,13 @@ export default function Home() {
           value={input}
           onChange={handleInputChange}
           onKeyDown={handleKeyPress}
-          className="input-box"
+          className="bg-transparent text-white p-2 rounded-md focus:outline-none flex-grow"
+          autoFocus
+          placeholder="Enter a command"
           style={{
-            outline: 'none',
             border: 'none',
-            backgroundColor: 'transparent',
-            color: 'inherit',
-            width: 'calc(100% - 120px)',
-            fontFamily: 'monospace',
-            padding: '10px',
+            backgroundColor: 'transparent', // Make the input blend with terminal background
+            fontFamily: 'monospace', // Ensure the input uses a monospace font
           }}
         />
       </div>
