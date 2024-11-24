@@ -16,12 +16,13 @@ export default function Home() {
   const [activeTabId, setActiveTabId] = useState(1);
   const terminalRef = useRef(null);
 
+  // Get the active tab
   const getActiveTab = () => tabs.find((tab) => tab.id === activeTabId);
 
+  // Execute commands and handle API response
   const executeCommand = async (command) => {
     const activeTab = getActiveTab();
 
-    // Add the command to the terminal
     setTabs((prevTabs) =>
       prevTabs.map((tab) =>
         tab.id === activeTabId
@@ -44,30 +45,52 @@ export default function Home() {
     }
 
     try {
+      // Send command to API
       const response = await fetch('/api/execute', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({ command }),
       });
 
-      const result = await response.json();
+      const data = await response.json();
 
-      // Add the API's response to the terminal
-      setTabs((prevTabs) =>
-        prevTabs.map((tab) =>
-          tab.id === activeTabId
-            ? {
-                ...tab,
-                output: [
-                  ...tab.output,
-                  <div key={`result-${Date.now()}`}>{result.output}</div>,
-                ],
-              }
-            : tab
-        )
-      );
+      if (response.ok) {
+        // Assuming the API returns 'result' for successful commands
+        setTabs((prevTabs) =>
+          prevTabs.map((tab) =>
+            tab.id === activeTabId
+              ? {
+                  ...tab,
+                  output: [
+                    ...tab.output,
+                    <div key={`result-${Date.now()}`}>{data.result || 'No output returned'}</div>,
+                  ],
+                }
+              : tab
+          )
+        );
+      } else {
+        // If the API response contains an 'error' key
+        setTabs((prevTabs) =>
+          prevTabs.map((tab) =>
+            tab.id === activeTabId
+              ? {
+                  ...tab,
+                  output: [
+                    ...tab.output,
+                    <div key={`error-${Date.now()}`} className="text-red-500">
+                      Error: {data.error || 'Unknown error'}
+                    </div>,
+                  ],
+                }
+              : tab
+          )
+        );
+      }
     } catch (error) {
-      // Handle errors by displaying them in the terminal
+      // Handle any network or unexpected errors
       setTabs((prevTabs) =>
         prevTabs.map((tab) =>
           tab.id === activeTabId
@@ -76,7 +99,7 @@ export default function Home() {
                 output: [
                   ...tab.output,
                   <div key={`error-${Date.now()}`} className="text-red-500">
-                    Error: {error.message}
+                    Error: Network or unexpected error
                   </div>,
                 ],
               }
@@ -84,8 +107,16 @@ export default function Home() {
         )
       );
     }
+
+    // Clear the input after command execution
+    setTabs((prevTabs) =>
+      prevTabs.map((tab) =>
+        tab.id === activeTabId ? { ...tab, input: '' } : tab
+      )
+    );
   };
 
+  // Clear the terminal for the active tab
   const clearTerminal = () => {
     setTabs((prevTabs) =>
       prevTabs.map((tab) =>
@@ -94,6 +125,7 @@ export default function Home() {
     );
   };
 
+  // Handle input change
   const handleInputChange = (e) => {
     const value = e.target.value;
     setTabs((prevTabs) =>
@@ -103,18 +135,15 @@ export default function Home() {
     );
   };
 
+  // Handle Enter key press
   const handleKeyPress = (e) => {
     const activeTab = getActiveTab();
     if (e.key === 'Enter' && activeTab.input.trim()) {
       executeCommand(activeTab.input.trim());
-      setTabs((prevTabs) =>
-        prevTabs.map((tab) =>
-          tab.id === activeTabId ? { ...tab, input: '' } : tab
-        )
-      );
     }
   };
 
+  // Add a new tab
   const handleAddTab = () => {
     const newId = tabs.length ? Math.max(...tabs.map((t) => t.id)) + 1 : 1;
     setTabs((prevTabs) => [
@@ -124,15 +153,17 @@ export default function Home() {
     setActiveTabId(newId);
   };
 
+  // Close a tab
   const handleCloseTab = (id) => {
     const remainingTabs = tabs.filter((tab) => tab.id !== id);
     setTabs(remainingTabs);
 
     if (id === activeTabId && remainingTabs.length > 0) {
-      setActiveTabId(remainingTabs[0].id);
+      setActiveTabId(remainingTabs[0].id); // Switch to another tab
     }
   };
 
+  // Ensure the page title matches the active tab
   useEffect(() => {
     document.title = `Tab ${activeTabId}`;
   }, [activeTabId]);
