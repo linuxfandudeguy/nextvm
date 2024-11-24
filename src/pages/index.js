@@ -8,7 +8,7 @@ export default function Home() {
   const inputRef = useRef(null);
 
   // ASCII Art to be displayed when terminal loads
-  const asciiArt = 
+  const asciiArt = `
  ██████   █████                       █████    █████   █████ ██████   ██████
 ░░██████ ░░███                       ░░███    ░░███   ░░███ ░░██████ ██████ 
  ░███░███ ░███   ██████  █████ █████ ███████   ░███    ░███  ░███░█████░███ 
@@ -17,14 +17,14 @@ export default function Home() {
  ░███  ░░█████ ░███░░░    ███░░░███   ░███ ███  ░░░█████░    ░███      ░███ 
  █████  ░░█████░░██████  █████ █████  ░░█████     ░░███      █████     █████
 ░░░░░    ░░░░░  ░░░░░░  ░░░░░ ░░░░░    ░░░░░       ░░░      ░░░░░     ░░░░░ 
-;
+`;
 
   // Function to handle the execution of commands
   const executeCommand = async (command) => {
     // Display the prompt and the command
     setOutput((prevOutput) => [
       ...prevOutput,
-      <div key={prompt-${Date.now()}}>
+      <div key={`prompt-${Date.now()}`}>
         <span className="text-green-500">root@next:~#</span> {command}
       </div>,
     ]);
@@ -53,12 +53,12 @@ export default function Home() {
     if (response.ok) {
       setOutput((prevOutput) => [
         ...prevOutput,
-        <div key={result-${Date.now()}}>{data.result}</div>, // Just display raw text
+        <div key={`result-${Date.now()}`}>{data.result}</div>, // Just display raw text
       ]);
     } else {
       setOutput((prevOutput) => [
         ...prevOutput,
-        <div key={error-${Date.now()}}>Error: {data.error}</div>,
+        <div key={`error-${Date.now()}`}>Error: {data.error}</div>,
       ]);
     }
 
@@ -103,9 +103,7 @@ export default function Home() {
     styles.split(';').forEach((style) => {
       const [key, value] = style.split(':').map((s) => s.trim());
       if (key && value) {
-        // Convert CSS property to camelCase for React
-        const camelCaseKey = key.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
-        styleObj[camelCaseKey] = value;
+        styleObj[key] = value;
       }
     });
     return styleObj;
@@ -158,84 +156,25 @@ export default function Home() {
     }
   };
 
-  // **ANSI RGB Color Parsing Function**
-  const parseAnsiToHtml = (text) => {
-    const ansiRegex = /\x1b\[([0-9;]+)m/g; // Match ANSI escape codes
-    const parts = [];
-    let lastIndex = 0;
-    let style = {};
-
-    let match;
-    while ((match = ansiRegex.exec(text)) !== null) {
-      const ansiCode = match[1];
-      const index = match.index;
-
-      // Push the text before the ANSI code
-      if (lastIndex < index) {
-        parts.push(
-          <span style={style} key={text-${lastIndex}}>
-            {text.slice(lastIndex, index)}
-          </span>
-        );
-      }
-
-      lastIndex = ansiRegex.lastIndex; // Update last index to after the ANSI code
-
-      const codeList = ansiCode.split(';').map(Number);
-      if (codeList[0] === 38 && codeList[1] === 2 && codeList.length >= 5) {
-        // Foreground RGB color: \x1b[38;2;{r};{g};{b}m
-        const [_, __, r, g, b] = codeList;
-        style = { ...style, color: rgb(${r}, ${g}, ${b}) };
-      } else if (codeList[0] === 48 && codeList[1] === 2 && codeList.length >= 5) {
-        // Background RGB color: \x1b[48;2;{r};{g};{b}m
-        const [_, __, r, g, b] = codeList;
-        style = { ...style, backgroundColor: rgb(${r}, ${g}, ${b}) };
-      } else if (codeList[0] === 0) {
-        // Reset styles: \x1b[0m
-        style = {};
-      }
-      // You can add more ANSI codes handling here if needed
-    }
-
-    // Push remaining text after the last ANSI code
-    if (lastIndex < text.length) {
-      parts.push(
-        <span style={style} key={text-${lastIndex}}>
-          {text.slice(lastIndex)}
-        </span>
-      );
-    }
-
-    return parts.length > 0 ? parts : text;
-  };
-
   return (
     <div
       className="min-h-screen bg-gray-900 text-white flex flex-col"
-      style={{
-        margin: 0,
-        padding: 0,
-        height: '100vh',
-        width: '100vw',
-        fontFamily: 'GeistMono, monospace', // Apply GeistMono font globally with monospace fallback
-      }}
+      style={{ margin: 0, padding: 0, height: '100vh', width: '100vw', fontFamily: 'GeistMono' }} // Apply GeistMono font globally
     >
       {/* Terminal Output */}
       <div
         ref={terminalRef}
         className="bg-gray-800 flex-grow p-6 text-white overflow-auto"
         style={{
-          whiteSpace: 'pre-wrap', // Preserve whitespace and allow wrapping
-          wordWrap: 'break-word',
+          whiteSpace: 'pre', // Ensure whitespace is preserved for ASCII art
+          wordWrap: 'normal',
           lineHeight: '1.4',
           scrollBehavior: 'unset', // Ensure no smooth scrolling
         }}
         onScroll={handleScroll} // Detect scrolling
       >
         {output.map((item, index) => (
-          <div key={index}>
-            {typeof item === 'string' ? parseAnsiToHtml(item) : item} {/* Parse ANSI codes */}
-          </div>
+          <div key={index}>{item}</div> // Dynamically render React elements like Image or text
         ))}
       </div>
 
@@ -261,3 +200,4 @@ export default function Home() {
     </div>
   );
 }
+
