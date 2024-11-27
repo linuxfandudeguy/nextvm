@@ -2,7 +2,7 @@ import Document, { Html, Head, Main, NextScript } from 'next/document';
 
 class MyDocument extends Document {
   render() {
-    const gtmId = 'GTM-P6DWWGDN'; // Replace with your GTM container ID
+    const gtmId = 'GTM-T4JZP38B'; // Updated GTM container ID
 
     return (
       <Html lang="en">
@@ -19,11 +19,24 @@ class MyDocument extends Document {
               `,
             }}
           />
+
           {/* Link to the manifest.json file */}
           <link rel="manifest" href="/manifest.json" />
+          
+          {/* Meta Tags for SEO and Mobile Optimization */}
           <meta name="description" content="A terminal emulator in the browser powered by Next.js." />
           <meta name="viewport" content="width=device-width, initial-scale=1" />
+          <meta name="author" content="lelbois" />
+          <meta property="og:title" content="Terminal Emulator in Browser" />
+          <meta property="og:description" content="A terminal emulator in the browser powered by Next.js." />
+          <meta property="og:image" content="/path/to/your/og-image.png" />
+          <meta property="og:url" content="https://nextvm.vercel.app" />
+          <meta name="twitter:card" content="summary_large_image" />
+          <meta name="twitter:title" content="NextVM - Terminal Emulator in Browser" />
+          <meta name="twitter:description" content="A terminal emulator in the browser powered by Next.js." />
+          <meta name="twitter:image" content="/path/to/your/twitter-image.png" />
         </Head>
+
         <body>
           {/* Google Tag Manager (noscript) - Body */}
           <noscript>
