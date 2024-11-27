@@ -174,7 +174,10 @@ export default function Home() {
       style={{ margin: 0, padding: 0, height: '100vh', width: '100vw' }}
     >
       {/* Tab bar */}
-      <div className="flex bg-gray-900 p-2 border-b border-gray-700">
+      <div
+        className="flex overflow-x-auto bg-gray-900 p-2 border-b border-gray-700"
+        style={{ flexShrink: 0 }}
+      >
         {tabs.map((tab) => (
           <div
             key={tab.id}
