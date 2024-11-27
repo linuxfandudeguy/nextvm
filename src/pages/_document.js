@@ -29,12 +29,12 @@ class MyDocument extends Document {
           <meta name="author" content="lelbois" />
           <meta property="og:title" content="Terminal Emulator in Browser" />
           <meta property="og:description" content="A terminal emulator in the browser powered by Next.js." />
-          <meta property="og:image" content="/path/to/your/og-image.png" />
+          <meta property="og:image" content="/meta-tag-img.png" />
           <meta property="og:url" content="https://nextvm.vercel.app" />
           <meta name="twitter:card" content="summary_large_image" />
           <meta name="twitter:title" content="NextVM - Terminal Emulator in Browser" />
           <meta name="twitter:description" content="A terminal emulator in the browser powered by Next.js." />
-          <meta name="twitter:image" content="/path/to/your/twitter-image.png" />
+          <meta name="twitter:image" content="/meta-tag-img.png" />
         </Head>
 
         <body>
