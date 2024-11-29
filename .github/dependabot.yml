@@ -2,7 +2,7 @@
 
 version: 2
 updates:
-  - package-ecosystem: "bun" # Ecosystem for managing dependencies (bun, npm, yarn, etc.)
+  - package-ecosystem: "npm" # Ecosystem for managing dependencies (bun, npm, yarn, etc.)
     directory: "/"            # Location of the package manifest (e.g., package.json or bun.lockb)
     schedule:
       interval: "weekly"      # How often to check for updates (daily, weekly, monthly)
