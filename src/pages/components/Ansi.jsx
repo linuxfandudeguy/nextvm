@@ -2,6 +2,8 @@ import React from 'react';
 
 // Function to parse and replace ANSI escape codes with HTML (including RGB)
 const parseAnsiToHtml = (input) => {
+  if (typeof window === 'undefined') return input; // Prevent execution on the server
+
   // Regex for basic color codes
   const ansiRegex = /\x1b\[(\d+)(;\d+)*m/g;
   // Regex for RGB codes (foreground: 38;2;R;G;B and background: 48;2;R;G;B)
