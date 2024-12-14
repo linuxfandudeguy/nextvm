@@ -171,19 +171,64 @@ export default function Home() {
   }, [activeTabId]);
 
   return (
-    <div>
-      {/* Your terminal component UI here */}
-      <div>
-        <div>
-          {getActiveTab()?.output.map((line, idx) => (
-            <div key={idx}>{line}</div>
-          ))}
-        </div>
+    <div
+      className="min-h-screen bg-gray-900 text-white flex flex-col"
+      style={{ margin: 0, padding: 0, height: '100vh', width: '100vw' }}
+    >
+      {/* Tab bar */}
+      <div
+        className="flex overflow-x-auto bg-gray-900 p-2 border-b border-gray-700"
+        style={{ flexShrink: 0 }}
+      >
+        {tabs.map((tab) => (
+          <div
+            key={tab.id}
+            className={`p-2 cursor-pointer ${
+              tab.id === activeTabId ? 'bg-gray-700' : 'bg-gray-900'
+            }`}
+            onClick={() => setActiveTabId(tab.id)}
+          >
+            Tab {tab.id}
+            <button
+              className="ml-2 text-red-500"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleCloseTab(tab.id);
+              }}
+            >
+              ×
+            </button>
+          </div>
+        ))}
+        <button
+          className="p-2 ml-auto bg-gray-700 hover:bg-gray-600"
+          onClick={handleAddTab}
+        >
+          + Add Tab
+        </button>
+      </div>
+
+      {/* Terminal body */}
+      <div
+        className="flex-1 overflow-y-auto p-4"
+        ref={terminalRef}
+        style={{ display: 'flex', flexDirection: 'column' }}
+      >
+        {getActiveTab().output.map((line, index) => (
+          <div key={index}>{line}</div>
+        ))}
+      </div>
+
+      {/* Input field */}
+      <div className="flex items-center p-4 bg-gray-800 border-t border-gray-700">
+        <span className="text-green-500">root@next:~#</span>
         <input
           type="text"
-          value={getActiveTab()?.input || ''}
+          value={getActiveTab().input}
           onChange={handleInputChange}
           onKeyDown={handleKeyPress}
+          className="bg-gray-800 text-white ml-2 flex-1 p-2 outline-none"
+          autoFocus
         />
       </div>
     </div>
