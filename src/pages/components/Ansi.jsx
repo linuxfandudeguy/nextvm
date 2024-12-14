@@ -1,39 +1,57 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
-// Function to parse ANSI escape sequences and return colored text
-const parseAnsi = (input) => {
-  const ansiRegex = /\033\[(\d+)(m)/g; // Regex to find ANSI codes
-  const colorMap = {
-    '30': 'black',
-    '31': 'red',
-    '32': 'green',
-    '33': 'yellow',
-    '34': 'blue',
-    '35': 'magenta',
-    '36': 'cyan',
-    '37': 'white',
-    '90': 'brightBlack',
-    '91': 'brightRed',
-    '92': 'brightGreen',
-    '93': 'brightYellow',
-    '94': 'brightBlue',
-    '95': 'brightMagenta',
-    '96': 'brightCyan',
-    '97': 'brightWhite',
+const Ansi = ({ text }) => {
+  const [isClient, setIsClient] = useState(false);
+
+  // Use useEffect to determine if we're in the client-side
+  useEffect(() => {
+    setIsClient(typeof window !== 'undefined');
+  }, []);
+
+  // If not client-side (SSR), return plain text
+  if (!isClient) {
+    return <pre>{text}</pre>;
+  }
+
+  // Function to parse the ANSI escape codes and color the text
+  const parseAnsi = (str) => {
+    const ansiRegex = /\033\[(\d{1,2})m/g;
+    const colors = {
+      '31': 'red',   // Red
+      '32': 'green', // Green
+      '33': 'yellow', // Yellow
+      '34': 'blue',  // Blue
+      '35': 'magenta', // Magenta
+      '36': 'cyan',  // Cyan
+      '37': 'white', // White
+    };
+
+    let parsedText = [];
+    let lastIndex = 0;
+
+    let match;
+    while ((match = ansiRegex.exec(str)) !== null) {
+      const colorCode = match[1];
+      const color = colors[colorCode] || 'white';
+      const textBeforeMatch = str.slice(lastIndex, match.index);
+      parsedText.push(<span key={lastIndex}>{textBeforeMatch}</span>);
+
+      lastIndex = ansiRegex.lastIndex;
+      parsedText.push(
+        <span key={ansiRegex.lastIndex} style={{ color }}>
+          {str.slice(match.index + match[0].length, ansiRegex.lastIndex)}
+        </span>
+      );
+    }
+
+    // Add remaining text after the last match
+    parsedText.push(<span key={lastIndex}>{str.slice(lastIndex)}</span>);
+
+    return parsedText;
   };
 
-  // Replace ANSI escape codes with corresponding HTML style spans
-  return input.split('').map((char, index) => {
-    if (ansiRegex.test(char)) {
-      const matches = ansiRegex.exec(char);
-      const colorCode = matches[1];
-      const color = colorMap[colorCode];
-      return <span key={index} style={{ color }}>{char}</span>;
-    }
-    return char;
-  });
+  // If it's client-side, parse the ANSI codes and return the colored version
+  return <pre>{parseAnsi(text)}</pre>;
 };
 
-export default function Ansi({ text }) {
-  return <pre>{parseAnsi(text)}</pre>;
-}
+export default Ansi;
